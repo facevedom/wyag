@@ -322,3 +322,22 @@ def object_hash(fd, fmt, repo=None):
         raise Exception("Unknown type %s" % fmt)
 
     return object_write(obj, repo)
+
+
+def kvlm_parse(raw, start=0, dct=None):
+    if not dct:
+        dct = collections.OrderedDict()
+        # You CANNOT declare the argument as dct=OrderedDict() or all
+        # call to the functions will endlessly grow the same dict
+
+    # We search for the next space and the next newline.
+    spc = raw.find(b' ', start)
+    nl = raw.find(b'\n', start)
+
+    # If space appears before newline, we have a keyword.
+
+    # Base case
+    # =========
+    # If newline appears first (or there's no space at all, in which case find
+    # returns -1), we assume a blank line. A blank line means the remainder of 
+    # the data is the message.
