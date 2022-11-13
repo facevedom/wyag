@@ -341,3 +341,35 @@ def kvlm_parse(raw, start=0, dct=None):
     # If newline appears first (or there's no space at all, in which case find
     # returns -1), we assume a blank line. A blank line means the remainder of 
     # the data is the message.
+    if (spc < 0) or (nl < spc):
+        assert(nl == start)
+        dct[b''] = raw[start+1:]
+        return dct
+    
+    # Recursive case
+    # ==============
+    # we read a key-value pair and recurse for the next.
+    key = raw[start:spc]
+
+    # Find the end of the value. Continuation lines begin with a
+    # space, so we loop until we find a "\n" not followed by a space.
+    end = start
+    while True:
+        end = raw.find(b'\n', end+1)
+        if raw[end+1] != ord(' '): break
+
+    # Grab the value
+    # Also, drop the leading space on continuation lines
+    value = raw[spc+1:end].replace(b'\n', b'\n')
+
+    # Don't overwrite existing data contents
+    if key in dct:
+        if type(dct[key]) == list:
+            dct[key].append(value)
+        else:
+            dct[key] = [ dct[key], value ]
+    else:
+        dct[key]=value
+
+    return kvlm_parse(raw, start=end+1, dct=dct)
+    
