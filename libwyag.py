@@ -538,3 +538,16 @@ def cmd_checkout(args):
         os.makedirs(args.path)
 
     tree_checkout(repo, obj, os.path.realpath(args.path).encode())
+
+
+def tree_checkout(repo, tree, path):
+    for item in tree.items:
+        obj = object_read(repo, item.sha)
+        dest = os.path.join(path, item.path)
+
+        if obj.fmt == b'tree':
+            os.mkdir(dest)
+            tree_checkout(repo, obj, dest)
+        elif obj.fmt == b'blob':
+            with open(dest, 'wb') as f:
+                f.write(obj.blobdata)
